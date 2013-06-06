@@ -1,16 +1,18 @@
--module(sockjs_multiplex_channel, [Conn, Topic]).
+-module(sockjs_multiplex_channel).
 
--export([send/1, close/0, close/2, info/0]).
+-export([new/2, send/2, close/1, close/3, info/1]).
 
-send(Data) ->
+new(Conn, Topic) ->
+    {?MODULE, [Conn, Topic]}.
+
+send(Data, {?MODULE, [Conn, Topic]}=THIS) ->
     Conn:send(iolist_to_binary(["msg", ",", Topic, ",", Data])).
 
-close() ->
-    close(1000, "Normal closure").
+close(THIS) ->
+    close(1000, "Normal closure", THIS).
 
-close(_Code, _Reason) ->
+close(_Code, _Reason, {?MODULE, [Conn, Topic]}=THIS) ->
     Conn:send(iolist_to_binary(["uns", ",", Topic])).
 
-info() ->
-    Conn:info() ++ [{topic, Topic}].
-
+info({?MODULE, [Conn, Topic]}=THIS) ->
+    Conn:info(THIS) ++ [{topic, Topic}].
